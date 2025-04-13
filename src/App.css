@@ -3,3 +3,50 @@
   border-radius: 5px;
   padding: 20px;
 }
+
+/* Professional additions */
+.App {
+  font-family: 'opensans-regular', sans-serif;
+}
+
+/* Modern button hover effect */
+button:hover,
+.button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+/* Smooth section transitions */
+section {
+  transition: background-color 0.5s ease, opacity 0.5s ease;
+}
+
+/* Improve image hover effects */
+.portfolio-item .item-wrap:hover {
+  transform: scale(1.03);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Enhanced skill bars */
+.bars .bar-expand {
+  transition: width 1.5s ease-in-out;
+}
+
+/* Modern scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
