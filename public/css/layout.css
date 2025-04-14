@@ -24,6 +24,8 @@
 
 body {
    background: #0f0f0f;
+   margin: 0;
+   padding: 0;
 }
 
 /* ------------------------------------------------------------------ */
@@ -35,11 +37,14 @@ header {
    height: 800px;
    min-height: 500px;
    width: 100%;
-   background: #161415 url(../images/background.gif) no-repeat top center;
+   background: #161415 url(../images/background.gif) no-repeat center top;
+   background-position: center 0;
    background-size: cover !important;
    -webkit-background-size: cover !important;
    text-align: center;
    overflow: hidden;
+   margin-top: 0;
+   padding-top: 0;
 }
 
 /* vertically center banner section */
