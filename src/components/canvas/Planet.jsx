@@ -9,15 +9,14 @@ function Planet({
   orbitRadius = 5,
   initialAngle = 0,
   orbitSpeed = 0.5,
-  rotationSpeed = 0.005,
-  onClick = () => {}, // Add onClick prop
+  onClick = () => { },
 }) {
   const meshRef = useRef()
-  const groupRef = useRef() // Ref for the group controlling the orbit position
-  const texture = useTexture(textureUrl) // Load the texture
+  const groupRef = useRef()
+  const texture = useTexture(textureUrl)
 
   const [hovered, setHovered] = useState(false)
-  const [active, setActive] = useState(false) // State for click/active
+  const [active, setActive] = useState(false)
 
   // Spring animation for scaling
   const { scale } = useSpring({
@@ -25,18 +24,20 @@ function Planet({
     config: { mass: 1, tension: 170, friction: 26 },
   })
 
-  // Orbiting logic
+  // Orbiting and Tidal Locking logic
   useFrame(({ clock }) => {
     const elapsedTime = clock.getElapsedTime()
     const angle = initialAngle + elapsedTime * orbitSpeed
     const x = Math.cos(angle) * orbitRadius
     const z = Math.sin(angle) * orbitRadius
+
     if (groupRef.current) {
       groupRef.current.position.set(x, 0, z)
     }
-    // Self-rotation
+
+    // Tidal Locking: Make the planet look at the center [0, 0, 0]
     if (meshRef.current) {
-      meshRef.current.rotation.y += rotationSpeed
+      meshRef.current.lookAt(0, 0, 0)
     }
   })
 
@@ -49,9 +50,9 @@ function Planet({
   const handlePointerOut = (event) => {
     event.stopPropagation()
     setHovered(false)
-     if (!active) { // Only reset cursor if not active
-       document.body.style.cursor = 'default'
-     }
+    if (!active) { // Only reset cursor if not active
+      document.body.style.cursor = 'default'
+    }
   }
 
   const handleClick = (event) => {
@@ -62,21 +63,21 @@ function Planet({
     document.body.style.cursor = !active ? 'pointer' : 'default';
   }
 
-
   return (
-    // Group controls the position in the orbit
     <group ref={groupRef}>
-      {/* `a.mesh` is an animated mesh from react-spring */}
       <a.mesh
         ref={meshRef}
-        scale={scale} // Apply animated scale
+        scale={scale}
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
         onClick={handleClick}
       >
         <sphereGeometry args={[size, 32, 32]} />
-        {/* Use MeshStandardMaterial for realistic lighting */}
-        <meshStandardMaterial map={texture} roughness={0.7} metalness={0.1} />
+        <meshStandardMaterial
+          map={texture}
+          roughness={0.7}
+          metalness={0.1}
+        />
       </a.mesh>
     </group>
   )

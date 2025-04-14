@@ -16,7 +16,7 @@ function SolarSystem() {
             <pointLight position={[0, 0, 0]} intensity={1.5} color="yellow" />
             {/* Optional: Add a visual representation for the center/sun */}
             <mesh position={[0, 0, 0]}>
-                <sphereGeometry args={[0.5, 32, 32]} />
+                <sphereGeometry args={[1.5, 32, 32]} /> {/* Increased size from 0.5 to 1.5 */}
                 <meshStandardMaterial emissive="yellow" emissiveIntensity={2} />
             </mesh>
 
@@ -27,7 +27,6 @@ function SolarSystem() {
                 orbitRadius={5}
                 initialAngle={0}
                 orbitSpeed={0.3}
-                rotationSpeed={0.01}
                 onClick={() => handlePlanetClick('Planet 1')}
             />
             <Planet
@@ -36,7 +35,6 @@ function SolarSystem() {
                 orbitRadius={8}
                 initialAngle={Math.PI / 2} // Start at a different position
                 orbitSpeed={0.2}
-                rotationSpeed={0.008}
                 onClick={() => handlePlanetClick('Planet 2')}
             />
 

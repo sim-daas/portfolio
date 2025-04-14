@@ -25,7 +25,7 @@ body {
   height: 100%;
   z-index: -1;
   /* Place it behind everything */
-  background-image: url('/high.png');
+  background-image: url('/universe.jpg');
   /* Use your chosen image */
   background-size: cover;
   background-position: center center;
