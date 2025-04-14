@@ -5,12 +5,12 @@ import { useSpring, a } from '@react-spring/three' // Import animated components
 
 function Planet({
   textureUrl,
-  size = 1,
+  size = 1, // Keep size prop
   orbitRadius = 5,
   initialAngle = 0,
   orbitSpeed = 0.5,
-  rotationSpeed = 0, // Re-add rotationSpeed prop with a default of 0
-  onClick = () => { }, // onClick now expects the groupRef
+  rotationSpeed = 0,
+  onClick = () => { }, // onClick now expects (groupRef, size)
 }) {
   const meshRef = useRef()
   const groupRef = useRef()
@@ -60,9 +60,7 @@ function Planet({
 
   const handleClick = (event) => {
     event.stopPropagation()
-    setActive(!active)
-    onClick(groupRef) // Pass the groupRef to the handler in SolarSystem
-    document.body.style.cursor = !active ? 'pointer' : 'default';
+    onClick(groupRef, size) // Pass the groupRef AND the size
   }
 
   return (
@@ -72,7 +70,7 @@ function Planet({
         scale={scale}
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
-        onClick={handleClick} // Use the updated handler
+        onClick={handleClick}
       >
         <sphereGeometry args={[size, 32, 32]} />
         <meshStandardMaterial

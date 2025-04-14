@@ -5,130 +5,141 @@ import { OrbitControls, useTexture, Stars } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 
-// Temporary vector for calculations to avoid creating new objects in loop
 const tempVector = new THREE.Vector3();
-const tempTargetVector = new THREE.Vector3(); // Separate vector for target
+const desiredCameraPos = new THREE.Vector3(); // Vector for desired camera position
 
 function SolarSystem() {
-    // Store the ref of the target planet, not just position
     const [targetPlanetRefState, setTargetPlanetRefState] = useState(null);
+    const [targetPlanetSize, setTargetPlanetSize] = useState(1); // Store target size
     const [isSatelliteMoving, setIsSatelliteMoving] = useState(false);
 
-    const controlsRef = useRef(); // Ref for OrbitControls
-    const satelliteRef = useRef(); // Ref for the Satellite's group
+    const controlsRef = useRef();
+    const satelliteRef = useRef();
+    const { camera } = useThree();
 
-    const { camera } = useThree(); // Get camera instance
-
-    const handlePlanetClick = (planetName, groupRef) => {
+    const handlePlanetClick = (planetName, groupRef, planetSize) => {
         console.log(`${planetName} section clicked!`);
-        if (!isSatelliteMoving && groupRef.current) { // Only trigger if not already moving
-            setTargetPlanetRefState(groupRef); // Store the ref itself
-            setIsSatelliteMoving(true);
+
+        // If clicking the currently tracked planet, reset the view
+        if (targetPlanetRefState === groupRef) {
+            setTargetPlanetRefState(null);
+            setIsSatelliteMoving(false); // Ensure satellite stops if it was moving
             if (controlsRef.current) {
-                controlsRef.current.enabled = false; // Disable user controls during animation
+                controlsRef.current.enabled = true; // Re-enable controls
             }
+            return; // Exit early
+        }
+
+        // If clicking a new planet (or first click)
+        if (groupRef.current) {
+            setTargetPlanetRefState(groupRef);
+            setTargetPlanetSize(planetSize); // Store the size
+            setIsSatelliteMoving(true); // Start satellite movement
         }
     }
 
     const handleSatelliteArrival = () => {
         console.log("Satellite arrived!");
-        setIsSatelliteMoving(false);
-        // Don't clear targetPlanetRefState immediately, camera might still need it briefly
-        if (controlsRef.current) {
-            controlsRef.current.enabled = true; // Re-enable user controls
-        }
-        // Optional: Focus camera directly on planet after arrival
-        if (targetPlanetRefState?.current && controlsRef.current) {
-            targetPlanetRefState.current.getWorldPosition(tempTargetVector);
-            controlsRef.current.target.copy(tempTargetVector); // Set target directly
-        }
-        // Clear target ref after a short delay or when next interaction starts
-        setTimeout(() => setTargetPlanetRefState(null), 500);
+        setIsSatelliteMoving(false); // Satellite stops, but camera continues tracking
     }
 
-    const sunTexture = useTexture('/textures/sun.jpg');
     const sunRef = useRef();
+    const sunTexture = useTexture('/textures/sun.jpg');
 
-    // Rotate the sun slowly
     useFrame(() => {
         if (sunRef.current) {
             sunRef.current.rotation.y += 0.0005;
         }
     });
 
-    // Camera tracking logic
+    // Camera tracking logic - Enhanced for framing
     useFrame(() => {
-        if (isSatelliteMoving && satelliteRef.current && controlsRef.current) {
-            // Get satellite's current world position
-            satelliteRef.current.getWorldPosition(tempVector);
+        if (targetPlanetRefState?.current && controlsRef.current) {
+            // --- Tracking Active ---
+            controlsRef.current.enabled = false; // Ensure controls are disabled
 
-            // Smoothly move the OrbitControls target towards the satellite
-            controlsRef.current.target.lerp(tempVector, 0.05); // Adjust lerp factor (0.01 - 0.1) for smoothness
+            // Get planet's current world position
+            targetPlanetRefState.current.getWorldPosition(tempVector);
 
-            controlsRef.current.update(); // IMPORTANT: Update controls after changing target
-        } else if (targetPlanetRefState?.current && controlsRef.current && !isSatelliteMoving) {
-            // If satellite arrived but we still have a target ref, keep focusing on planet
-            targetPlanetRefState.current.getWorldPosition(tempTargetVector);
-            controlsRef.current.target.lerp(tempTargetVector, 0.05); // Smoothly focus on planet
-            controlsRef.current.update();
-        } else if (controlsRef.current && !controlsRef.current.enabled && !isSatelliteMoving) {
-            // Ensure controls are enabled if animation finished unexpectedly
+            // Calculate desired camera position
+            const distanceFactor = 3.5; // How many planet radii away the camera should be (adjust as needed)
+            const cameraDistance = targetPlanetSize * distanceFactor;
+            // Simple offset: position camera slightly behind and above the planet relative to the sun
+            desiredCameraPos.copy(tempVector).normalize();
+            // Add some vertical offset
+            desiredCameraPos.y += 0.2; // Adjust vertical angle
+            // Scale by desired distance and add to planet position
+            desiredCameraPos.multiplyScalar(cameraDistance).add(tempVector);
+
+            // Smoothly move camera position
+            camera.position.lerp(desiredCameraPos, 0.04); // Adjust lerp factor for smoothness
+
+            // Smoothly move OrbitControls target to the planet's center
+            controlsRef.current.target.lerp(tempVector, 0.04); // Adjust lerp factor
+
+            controlsRef.current.update(); // IMPORTANT: Update controls
+
+        } else if (controlsRef.current && !controlsRef.current.enabled) {
+            // --- Tracking Inactive ---
+            // Only re-enable controls if not actively tracking
             controlsRef.current.enabled = true;
         }
     });
 
     return (
         <>
-            {/* 3D Starfield Background */}
-            <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
+            <Stars radius={300} depth={100} count={5000} factor={5} saturation={0} fade speed={0.5} /> {/* Increased radius */}
 
-            {/* Lighting */}
-            <ambientLight intensity={0.4} /> {/* Slightly increased ambient light */}
+            <ambientLight intensity={0.3} /> {/* Adjusted intensity slightly */}
+            <pointLight position={[0, 0, 0]} intensity={1.8} color="white" distance={1000} decay={1} /> {/* Increased intensity and distance */}
+
+            {/* Sun - Much larger */}
             <mesh position={[0, 0, 0]} ref={sunRef}>
-                <sphereGeometry args={[1.5, 32, 32]} />
+                <sphereGeometry args={[8, 64, 64]} /> {/* Significantly larger sun */}
                 <meshStandardMaterial
                     map={sunTexture}
                     emissiveMap={sunTexture}
                     emissive={0xffffff}
-                    emissiveIntensity={1.2}
+                    emissiveIntensity={1.5} // Slightly increased glow
                 />
             </mesh>
 
-            {/* Portfolio Section Planets */}
+            {/* Portfolio Section Planets - Pass size in onClick */}
             <Planet
-                onClick={(groupRef) => handlePlanetClick('About', groupRef)}
-                rotationSpeed={0.005} // Example rotation speed
-                orbitSpeed={0.25} // Example orbit speed
-                initialAngle={Math.PI / 4} // Example starting angle
-                orbitRadius={6} // Example orbit radius
-                size={1.0} // Example size
-                textureUrl="/textures/mars.webp" // Texture for About section
+                textureUrl="/textures/mars.webp" // About (Mars)
+                size={1.5}
+                orbitRadius={25}
+                initialAngle={Math.PI / 4}
+                orbitSpeed={0.08}
+                rotationSpeed={0.01}
+                onClick={(groupRef, size) => handlePlanetClick('About', groupRef, size)} // Pass size
             />
             <Planet
-                onClick={(groupRef) => handlePlanetClick('Skills', groupRef)}
-                rotationSpeed={0.008} // Example rotation speed
-                orbitSpeed={0.18} // Example orbit speed
-                initialAngle={Math.PI * 1.5} // Example starting angle
-                orbitRadius={10} // Example orbit radius
-                size={1.2} // Example size
-                textureUrl="/textures/jupiter.jpg" // Texture for Skills section
+                textureUrl="/textures/jupiter.jpg" // Skills (Jupiter)
+                size={4.5}
+                orbitRadius={55}
+                initialAngle={Math.PI * 1.5}
+                orbitSpeed={0.04}
+                rotationSpeed={0.008}
+                onClick={(groupRef, size) => handlePlanetClick('Skills', groupRef, size)} // Pass size
             />
 
-            {/* Satellite */}
+            {/* Satellite - No changes to its logic */}
             <Satellite
-                isMoving={isSatelliteMoving} // Pass moving state
+                ref={satelliteRef}
+                targetPlanetRef={targetPlanetRefState}
                 onArrival={handleSatelliteArrival}
-                targetPlanetRef={targetPlanetRefState} // Pass the target ref
-                ref={satelliteRef} // Forward ref to the satellite's group
+                isMoving={isSatelliteMoving}
             />
 
-            {/* Camera controls - Add ref */}
+            {/* Camera controls - Adjusted distances */}
             <OrbitControls
+                ref={controlsRef}
                 enableZoom={true}
-                enablePan={true} // Allow panning
-                minDistance={5} // Prevent zooming too close
-                maxDistance={50} // Prevent zooming too far
-                ref={controlsRef} // Add ref here
+                enablePan={true} // Keep panning enabled for user adjustment
+                minDistance={10} // Increase min distance
+                maxDistance={200} // Significantly increase max distance
+                target={[0, 0, 0]} // Initial target at the center
             />
         </>
     )
