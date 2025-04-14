@@ -9,6 +9,7 @@ function Planet({
   orbitRadius = 5,
   initialAngle = 0,
   orbitSpeed = 0.5,
+  rotationSpeed = 0, // Re-add rotationSpeed prop with a default of 0
   onClick = () => { },
 }) {
   const meshRef = useRef()
@@ -24,7 +25,7 @@ function Planet({
     config: { mass: 1, tension: 170, friction: 26 },
   })
 
-  // Orbiting and Tidal Locking logic
+  // Orbiting, Tidal Locking, and Self-Rotation logic
   useFrame(({ clock }) => {
     const elapsedTime = clock.getElapsedTime()
     const angle = initialAngle + elapsedTime * orbitSpeed
@@ -35,9 +36,11 @@ function Planet({
       groupRef.current.position.set(x, 0, z)
     }
 
-    // Tidal Locking: Make the planet look at the center [0, 0, 0]
     if (meshRef.current) {
+      // Tidal Locking: Make the planet look at the center [0, 0, 0]
       meshRef.current.lookAt(0, 0, 0)
+      // Apply self-rotation *after* lookAt
+      meshRef.current.rotation.y += rotationSpeed;
     }
   })
 
