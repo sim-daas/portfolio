@@ -1,61 +1,59 @@
-import React, { useRef } from 'react' // Import useRef
+import React, { useRef } from 'react'
 import Planet from './Planet'
 import { OrbitControls, useTexture } from '@react-three/drei'
-import { useFrame } from '@react-three/fiber' // Import useFrame
+import { useFrame } from '@react-three/fiber'
 
 function SolarSystem() {
     const handlePlanetClick = (planetName) => {
-        console.log(`${planetName} clicked!`)
-        // Add logic here to display planet info or navigate
+        console.log(`${planetName} section clicked!`)
+        // Later: Add logic to focus camera or display content for the clicked section
     }
 
-    // Load the sun texture
-    const sunTexture = useTexture('/textures/sun.jpg'); // Adjust filename/path if needed
-    const sunRef = useRef(); // Ref for the sun mesh
+    const sunTexture = useTexture('/textures/sun.jpg');
+    const sunRef = useRef();
 
     // Rotate the sun slowly
     useFrame(() => {
         if (sunRef.current) {
-            sunRef.current.rotation.y += 0.0005; // Adjust speed as needed
+            sunRef.current.rotation.y += 0.0005;
         }
     });
 
     return (
         <>
             {/* Lighting */}
-            <ambientLight intensity={0.3} />
-            {/* Point light simulates a sun - keep it for lighting effect */}
-            <pointLight position={[0, 0, 0]} intensity={1.5} color="white" /> {/* Changed color to white for more natural light */}
+            <ambientLight intensity={0.4} /> {/* Slightly increased ambient light */}
+            <pointLight position={[0, 0, 0]} intensity={1.5} color="white" />
 
-            {/* Visual representation for the center/sun with texture */}
-            <mesh position={[0, 0, 0]} ref={sunRef}> {/* Add ref here */}
+            {/* Sun */}
+            <mesh position={[0, 0, 0]} ref={sunRef}>
                 <sphereGeometry args={[1.5, 32, 32]} />
-                {/* Apply texture and make it emissive */}
                 <meshStandardMaterial
                     map={sunTexture}
-                    emissiveMap={sunTexture} // Make texture glow
-                    emissive={0xffffff} // Glow color (white)
-                    emissiveIntensity={1.2} // Adjust glow intensity
+                    emissiveMap={sunTexture}
+                    emissive={0xffffff}
+                    emissiveIntensity={1.2}
                 />
             </mesh>
 
-            {/* Planets */}
+            {/* Portfolio Section Planets */}
             <Planet
-                textureUrl="/textures/mars.webp"
-                size={0.8} // Slightly smaller Mars
-                orbitRadius={5}
-                initialAngle={0}
-                orbitSpeed={0.3}
-                onClick={() => handlePlanetClick('Mars')}
+                textureUrl="/textures/mars.webp" // Texture for About section
+                size={1.0} // Example size
+                orbitRadius={6} // Example orbit radius
+                initialAngle={Math.PI / 4} // Example starting angle
+                orbitSpeed={0.25} // Example orbit speed
+                rotationSpeed={0.005} // Example rotation speed
+                onClick={() => handlePlanetClick('About')}
             />
             <Planet
-                textureUrl="/textures/jupiter.jpg" // Use Jupiter texture
-                size={1.8} // Make Jupiter larger
-                orbitRadius={12} // Increase orbit radius
-                initialAngle={Math.PI / 1.5} // Adjust starting angle if needed
-                orbitSpeed={0.15} // Slower orbit for outer planet
-                rotationSpeed={0.015} // Add and adjust Jupiter's rotation speed
-                onClick={() => handlePlanetClick('Jupiter')} // Update name
+                textureUrl="/textures/jupiter.jpg" // Texture for Skills section
+                size={1.2} // Example size
+                orbitRadius={10} // Example orbit radius
+                initialAngle={Math.PI * 1.5} // Example starting angle
+                orbitSpeed={0.18} // Example orbit speed
+                rotationSpeed={0.008} // Example rotation speed
+                onClick={() => handlePlanetClick('Skills')}
             />
 
             {/* Optional: Camera controls for development */}
