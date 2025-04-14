@@ -10,7 +10,7 @@ function Planet({
   initialAngle = 0,
   orbitSpeed = 0.5,
   rotationSpeed = 0, // Re-add rotationSpeed prop with a default of 0
-  onClick = () => { },
+  onClick = () => { }, // onClick now expects the groupRef
 }) {
   const meshRef = useRef()
   const groupRef = useRef()
@@ -60,9 +60,8 @@ function Planet({
 
   const handleClick = (event) => {
     event.stopPropagation()
-    setActive(!active) // Toggle active state
-    onClick() // Call the passed onClick handler
-    // Keep cursor as pointer if active, otherwise default
+    setActive(!active)
+    onClick(groupRef) // Pass the groupRef to the handler in SolarSystem
     document.body.style.cursor = !active ? 'pointer' : 'default';
   }
 
@@ -73,7 +72,7 @@ function Planet({
         scale={scale}
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
-        onClick={handleClick}
+        onClick={handleClick} // Use the updated handler
       >
         <sphereGeometry args={[size, 32, 32]} />
         <meshStandardMaterial
